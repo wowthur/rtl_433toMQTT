@@ -1,7 +1,7 @@
 FROM scratch as caching-downloader
 
 ADD https://github.com/merbanan/rtl_433/archive/20.02.tar.gz /rtl_433.tar.gz
-ADD https://github.com/osmocom/rtl-sdr/archive/0.6.0.tar.gz /rtl_sdr.tar.gz
+ADD https://github.com/osmocom/rtl-sdr/archive/master.zip /rtl_sdr.zip
 
 FROM alpine:3.11 as builder
 
@@ -11,9 +11,11 @@ RUN apk add --no-cache --update cmake build-base libusb-dev bash
 
 COPY --from=caching-downloader / /tmp
 
-RUN mkdir -p /build/rtl_433 /build/rtl_sdr && \
+RUN mkdir -p /build/rtl_433 && \
     tar -zxvf /tmp/rtl_433.tar.gz -C /build/rtl_433 --strip-components=1 && \
-    tar -zxvf /tmp/rtl_sdr.tar.gz -C /build/rtl_sdr --strip-components=1
+    cd /build && \
+    unzip /tmp/rtl_sdr.zip && \
+    mv /build/rtl-sdr-master /build/rtl_sdr
 
 RUN mkdir /build/rtl_sdr/out && cd /build/rtl_sdr/out && \
     cmake ../ -DINSTALL_UDEV_RULES=ON -DDETACH_KERNEL_DRIVER=ON && \
